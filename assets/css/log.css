@@ -1,0 +1,17 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+.wrapper {
+	width: 800px;
+	margin: 0 auto;
+	position: relative;
+}
+.sec-footer {
+	padding-bottom: 9px;
+    margin: 0;
+    border-bottom: 1px solid #eee;
+}
+.sec-url {
+	word-wrap:break-word;
+}

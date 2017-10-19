@@ -1,7 +1,7 @@
 const fs = require('fs')
 const multiparty = require('multiparty')
-
-
+const { spawn } = require('child_process')
+const async = require('async')
 function resolveData(req, res, cb) {
     let form = new multiparty.Form()
     form.parse(req, function (err, fields, files) {
@@ -11,38 +11,98 @@ function resolveData(req, res, cb) {
             files: files
         }
         cb(res,data)
-        // let filename = files['file'][0].originalFilename,
-        //     targetPath = __dirname + '/images/' + filename,
-        //     captureUrl = fields['captureUrl'],
-        //     selector = fields['selector']
-        // if(filename && captureUrl && selector) {
-        //     fs.createReadStream(files['file'][0].path).pipe(fs.createWriteStream(targetPath))
-        //     let casperjs = spawn('casperjs', ['casper.js', filename, captureUrl, selector, id])
-        //     casperjs.stdout.on('data', (data) => {
-        //         data = data.toString().replace(/[\r\n]/g, "")
-        //         console.log(`数据日志：${data}`)
-        //          console.log(`------------------------------------------`)
-        //     }) 
-        // } else {
-        //     let errData = {
-        //         status: 400,
-        //         msg: 'wrong params'
-        //     }
-        //     resObj[id].writeHead(400, {'Content-type':'application/json'})
-        //     resObj[id].end(JSON.stringify(errData))
-        // }
     })
 }
 
 function uploadconfig(res, data) {
-    console.log(data)
+    let dataObj = data.fields,
+        configFilePath = './fileDB/apiTestConfig.txt',
+        tp = new Date().getTime(),
+        resultFilePath = `./server_log/apiTestlog_t_${tp}.json`
+        dataArr = Object.keys(dataObj).map((item, index) => {
+            return dataObj[item][0]
+        })
+    fs.writeFile(configFilePath, JSON.stringify(dataArr), (err) => {
+        if (err) throw err;
+        console.log('文件：'+ configFilePath.slice(2) +' 已经更新')
+        if(dataArr.length > 0) {
+            let resData = {
+                status: 200,
+                msg: '已写入配置文件'
+            }
+            res.writeHead(200, {'Content-type':'application/json'})
+            res.end(JSON.stringify(resData))
+            startCasper(dataArr, resultFilePath)
+        }
+    });
 }
+
+function startCasper(dataArr, resultFilePath) {
+    let casperPath = './child_process/casperMonitor.js'
+    let casperjs = spawn('casperjs', [casperPath, dataArr])
+    let body = ''
+    casperjs.stdout.on('data', (data) => {
+        data = data.toString()
+        body += data
+    }) 
+    casperjs.on('close', () => {
+        fs.writeFile(resultFilePath, body, (err) => {
+            console.log(`日志：${resultFilePath.slice(2)}写入结束`)
+        })
+    })
+}
+function sendData(req, res) {
+    let path = './server_log'
+    fs.readdir(path, asyncWriteBody)
+    function asyncWriteBody(err, files) {
+        let fnArr = files.map((item, index) => {
+            let filePath = './server_log/' + item
+            let readAble = fs.createReadStream(filePath)
+            let dataArr = []
+            if(!index) {
+                return function(cb) { 
+                    let data = ''
+                    readAble.on('data', (chunk) => {
+                        data += chunk
+                    })
+                    readAble.on('end', () => {
+                        dataArr.push(data)
+                        cb(null, dataArr)
+                    })
+                }  
+            } else {
+                return function(dataArr, cb) {
+                    let data = ''
+                    readAble.on('data', (chunk) => {
+                        data += chunk
+                    })
+                    readAble.on('end', () => {
+                        dataArr.push(data)
+                        cb(null, dataArr)
+                    })
+                } 
+            }
+        })
+        async.waterfall(fnArr, function (err, results) {
+            if(err) return err
+            res.writeHead(200, {'Content-type':'application/json'})
+            res.end(JSON.stringify(results))
+        })
+    }
+}
+
 
 function api(req, res, path) {
     switch(path)
     {
-        case 'uploadconfig':
+        case 'uploadConfig':
             resolveData(req, res, uploadconfig)
+            break;
+        case 'getConfigLogs':
+            sendData(req, res)
+            break;
+        case 'getConfig':
+            sendConfig()
     }
 }
 

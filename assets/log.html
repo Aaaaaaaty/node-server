@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>完美接口检测日志</title>
+	<link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.css">
+	<link rel="stylesheet" href="./css/log.css">
+</head>
+<body>
+	<div class="wrapper">
+		<div class="page-header">
+		    <h3>完美接口检测日志</h3>
+		</div>
+	</div>
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script>
+		$(document).ready(function() {
+			var pageHeader = $('.page-header')
+			$.ajax({
+                url:"/api/getConfigLogs",
+                type:"get",
+                port: 9090,
+                success:function(data){
+                	data.forEach(function(item) {
+                		item = JSON.parse(item)
+                		if(item.result) {
+	                		var title = new Date(item.t)
+	                		var logMsgHtml = ''
+	                		Object.keys(item.result).forEach(function(obj) {
+	                			var logItemHtml = '<p><p class="sec-url">地址：<a target="_blank" href="'+ obj +'">'+obj+'</a></p><p class="sec-footer">状态码：'+item.result[obj]+'</p></p>'
+	                			logMsgHtml += logItemHtml
+	                		})
+	                		var resultHtml = '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">'+ title +'</h3></div><div class="panel-body">'+ logMsgHtml +'</div></div>'
+	                		pageHeader.append(resultHtml)
+                		}	
+                	})
+                },
+                error:function(e){
+                	console.log('e', e)
+                }
+            })
+		})
+	</script>
+	
+</body>
+</html>

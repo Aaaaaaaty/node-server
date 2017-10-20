@@ -1,1 +1,1 @@
-["http://qyz.laohu.com/","http://www.laohu.com/","http://m.laohu.com/","http://lhj.laohu.com/","http://s.laohu.com/","http://zx.wanmei.com/"]
+["http://qyz.laohu.com/","http://www.laohu.com/","http://m.laohu.com/","http://lhj.laohu.com/","http://s.laohu.com/","http://zx.wanmei.com/","http://sdxl.laohu.com/","http://ff.laohu.com/","http://hj.laohu.com/","http://yt.laohu.com/","http://unison.laohu.com/","http://xy.laohu.com/","http://zt.laohu.com/","http://cg.laohu.com/","http://sd.laohu.com/","http://t.laohu.com/","http://zhuxian.wanmei.com/main.htm"]

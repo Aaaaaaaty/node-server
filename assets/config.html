@@ -12,28 +12,21 @@
 		<div class="page-header">
 		    <h3>完美接口检测配置</h3>
 		</div>
+		<button type="submit" class="btn btn-primary" id="immiTest">检测当前配置</button>
 		<div class="panel panel-default">
 		  <div class="panel-heading">
 		    <h3 class="panel-title">已配置地址</h3>
 		  </div>
 		  <div class="panel-body">
 		  	<div class="panel-url"></div>
+		  	<button id="submitBtn" type="submit" class="btn btn-primary">提交</button>
 		  	<div class="add btn btn-default">添加</div>
+
 		  </div>
 		</div>
-		<form id="form" style="display:none">
-		</form>
-		<div class="checkbox">
-		    <label>
-		      	<input id="immiTest" type="checkbox" value="true"> 立即检测接口
-		    </label>
-		</div>
-		<button id="submitBtn" type="submit" class="btn btn-primary">提交</button>
-		<div class="page-header">
-		    <h5>提交结果</h5>
-		    <p id="result"></p>
-		</div>
-		<img id="resultImg" src="" alt="" class="img-rounded">
+		<form id="form" style="display:none"></form>
+			
+			
 	</div>
 	<div class="progressBg"><div>提交配置文件...</div></div>
 	<div class="progress">
@@ -64,6 +57,7 @@
 				panelBody = $('.panel-url'),
 				add = $('.add'),
 				body = $('body'),
+				immiTest = $('#immiTest'),
 				form
 				
 				(function() {
@@ -139,20 +133,29 @@
 		                	console.log('e', e)
 		                }
 		            })
-		            if($("input:checked").get(0)) {
-		            	$.ajax({
-			                url:"/api/setTestConfig",
-			                type:"get",
-			                port: 9090,
-			                success:function(data){
-			                	console.log(data)
-			                },
-			                error:function(e){
-			                	console.log('e', e)
-			                }
-			            })
-		            }
 				}
+				immiTest.click(function() {
+					$.ajax({
+		                url:"/api/setTestConfig",
+		                type:"get",
+		                port: 9090,
+		                beforeSend:function() {
+		                	immiTest.html('检测中请稍后..')
+		                },
+		                success:function(data){
+		                	console.log(data)
+		                },
+		                complete: function() {
+		                	immiTest.html('检测完成，请查看').removeClass('btn-primary').addClass('btn-success').click(function() {
+		                		window.location.href = 'http://10.2.45.110:9090/log.html'
+		                	})
+		                },
+		                error:function(e){
+		                	console.log('e', e)
+		                }
+		            })
+				})
+
             }
 			
 		})

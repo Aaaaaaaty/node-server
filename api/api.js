@@ -34,7 +34,7 @@ function uploadconfig(res, data) {
     });
 }
 
-function startCasper() {
+function startCasper(res) {
     let tp = new Date().getTime(),
         configFilePath = './fileDB/apiTestConfig.txt',
         resultFilePath = `./server_log/apiTestlog_t_${tp}.json`,
@@ -55,6 +55,10 @@ function startCasper() {
         casperjs.on('close', () => {
             fs.writeFile(resultFilePath, casperBody, (err) => {
                 console.log(`日志：${resultFilePath.slice(2)}写入结束`)
+                if(res) {
+                    res.writeHead(200, 'OK')
+                    res.end('success')
+                }
             })
         })
     })
@@ -121,7 +125,7 @@ function api(req, res, path) {
             sendConfig(res)
             break;
         case 'setTestConfig':
-            startCasper()
+            startCasper(res)
             break;
     }
 }

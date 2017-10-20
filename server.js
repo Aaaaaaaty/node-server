@@ -6,7 +6,7 @@ const MIME_TYPE = require('./utils/mime.js').type
 const api = require('./api/api.js').api
 const server = http.createServer((req, res) => {
     parsePath(req, res)
-}).listen(9090)
+}).listen(3033)
 
 function parsePath(req, res) {
   var pathname = url.parse(req.url).pathname  

@@ -1,1 +1,1 @@
-exports.host = 'http://10.2.45.110:9090'
+var host = 'http://10.2.45.110:9090'

@@ -12,15 +12,23 @@
 		<div class="page-header">
 		    <h3>完美接口检测配置</h3>
 		</div>
-		<form id="form">
-			<div class="point">
-				<div class="form-group">
-					<label for="exampleInputEmail1">目标地址</label>
-					<input type="url" class="form-control" id="url" placeholder="Example: https://www.douban.com" name="captureUrl">
-				</div>
-			</div>
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+		    <h3 class="panel-title">已配置地址</h3>
+		  </div>
+		  <div class="panel-body">
+		  	<div class="panel-url"></div>
+		  	<div class="add btn btn-default">添加</div>
+		  </div>
+		</div>
+		<form id="form" style="display:none">
 		</form>
-		<button id="submitBtn" type="submit" class="btn btn-default">提交</button>
+		<div class="checkbox">
+		    <label>
+		      	<input id="immiTest" type="checkbox" value="true"> 立即检测接口
+		    </label>
+		</div>
+		<button id="submitBtn" type="submit" class="btn btn-primary">提交</button>
 		<div class="page-header">
 		    <h5>提交结果</h5>
 		    <p id="result"></p>
@@ -35,19 +43,79 @@
 	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	<script>
 		$(document).ready(function() {
-			var submitBtn = $('#submitBtn'),
+			$.ajax({
+                url:"/api/getConfig",
+                type:"get",
+                port: 9090,
+                success:setConfig,
+                error:function(e){
+                	console.log('e', e)
+                }
+            })
+            function setConfig(data) {
+            	var submitBtn = $('#submitBtn'),
 				resultImg = $('#resultImg'),
 				result = $('#result'),
 				diffImg = $('#diffImg'),
 				progress = $('.progress'),
 				bg = $('.progressBg'),
-				url = $('#url'),
 				selector = $('#selector'),
 				file = $('#file'),
+				panelBody = $('.panel-url'),
+				add = $('.add'),
+				body = $('body'),
 				form
-			submitBtn.on('click', ajaxForm)
-			function ajaxForm() {
-				if(url.val()) {
+				
+				(function() {
+					configHtml = ''
+					data = data.substring(1, data.length-1)
+					if(data.length) {
+						data.split(',').forEach(function(item) {
+							var index = new Date().getTime()
+							var configItemHtml = '<p><p class="sec-url sec-footer">地址：<a target="_blank" class="configUrl" href="'+ item +'">'+item+'</a><span data-key="'+ index +'" class="right btn btn-danger">删除</span></p></p>'
+		        			configHtml += configItemHtml
+						})
+						panelBody.append(configHtml)
+					}
+				})()
+				body.on('click', function(e) {
+					if($(e.target).attr('data-key')) {
+						$(e.target).parent().remove()
+					}
+				})
+				add.click(function() {
+					if(!$('#url-del').length) {
+						panelBody.append('<p><input type="url" id="url-input" class="form-control" placeholder="Example: https://www.douban.com"><span id="url-del" class=" right btn btn-danger">删除</span><span id="url-ok" class=" right btn btn-primary">确认</span></p>')
+						var del = $('#url-del')
+						var ok = $('#url-ok')
+						del.click(function() {
+							$(this).parent().remove()
+						})
+						ok.click(function() {
+							var index = new Date().getTime()
+							var url = $('#url-input').val()
+							var matchStr = /^((ht|f)tps?):\/\/[\w\-]+(\.[\w\-]+)+([\w\-\.,@?^=%&:\/~\+#]*[\w\-\@?^=%&\/~\+#])?$/
+							if(matchStr.test(url)) {
+								var configItemHtml = '<p><p class="sec-url sec-footer">地址：<a target="_blank" class="configUrl" href="'+ url +'">'+url+'</a><span data-key="'+ index +'" class="right btn btn-danger">删除</span></p></p>'
+								panelBody.append(configItemHtml)
+								$(this).parent().remove()
+							} else {
+								alert('请输入格式正确的配置地址！')
+							}
+							
+						})
+					}
+					
+				})
+				submitBtn.on('click', ajaxForm)
+				function ajaxForm() {
+					var configUrl = $('.configUrl')
+					var formData = $('#form')
+					var inputHtml = ''
+					configUrl.each(function(i, obj) {
+						inputHtml += '<input name="'+ obj +'" value="'+ obj +'">'
+					})
+					formData.append(inputHtml)
 					form = new FormData(document.getElementById("form"))
 					$.ajax({
 		                url:"/api/uploadConfig",
@@ -71,11 +139,22 @@
 		                	console.log('e', e)
 		                }
 		            })
-				} else {
-					alert('请填写完整信息！')
+		            if($("input:checked").get(0)) {
+		            	$.ajax({
+			                url:"/api/setTestConfig",
+			                type:"get",
+			                port: 9090,
+			                success:function(data){
+			                	console.log(data)
+			                },
+			                error:function(e){
+			                	console.log('e', e)
+			                }
+			            })
+		            }
 				}
-				
-			}
+            }
+			
 		})
 	</script>
 	

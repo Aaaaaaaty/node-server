@@ -7,6 +7,9 @@
 	margin: 0 auto;
 	position: relative;
 }
+.right {
+	float: right;
+}
 #diffImg {
 	width: 800px;
 	margin: 0 auto;
@@ -44,6 +47,22 @@
 #url:invalid {
 	border-color: red;
 }
-#selector:invalid {
-	border-color: red;
+
+.sec-footer {
+	line-height: 34px;
+}
+.sec-footer:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+.sec-url {
+	word-wrap:break-word;
+}
+.form-control {
+	width: 70%;
+	display: inline-block;
+}
+.btn {
+	margin-right: 10px;
 }

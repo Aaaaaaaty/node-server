@@ -1,1 +1,1 @@
-["http://www.163.com"]
+["http://qyz.laohu.com/","http://www.laohu.com/","http://m.laohu.com/","http://lhj.laohu.com/","http://s.laohu.com/","http://zx.wanmei.com/"]

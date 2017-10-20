@@ -10,6 +10,7 @@
 	<div class="wrapper">
 		<div class="page-header">
 		    <h3>完美接口检测日志</h3>
+		    <input type="text" class="form-control" id="time" placeholder="输入搜索日期如：2017 10 19">
 		</div>
 	</div>
 	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
@@ -17,12 +18,13 @@
 	<script>
 		$(document).ready(function() {
 			var pageHeader = $('.page-header')
+			var time = $('#time')
 			$.ajax({
                 url:"/api/getConfigLogs",
                 type:"get",
                 port: 9090,
                 success:function(data){
-                	data.forEach(function(item) {
+                	data.reverse().forEach(function(item) {
                 		item = JSON.parse(item)
                 		if(item.result) {
 	                		var title = new Date(item.t)
@@ -31,10 +33,27 @@
 	                			var logItemHtml = '<p><p class="sec-url">地址：<a target="_blank" href="'+ obj +'">'+obj+'</a></p><p class="sec-footer">状态码：'+item.result[obj]+'</p></p>'
 	                			logMsgHtml += logItemHtml
 	                		})
-	                		var resultHtml = '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">'+ title +'</h3></div><div class="panel-body">'+ logMsgHtml +'</div></div>'
+	                		var resultHtml = '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">'+ title.toLocaleString() +'</h3></div><div class="panel-body">'+ logMsgHtml +'</div></div>'
 	                		pageHeader.append(resultHtml)
                 		}	
                 	})
+                	time.on('input', function() {
+                		var value = time.val()
+                		var timeMatch = value.match(/\d+/g)
+                		$('.panel-title').each(function(i, item) {
+                			if(timeMatch) {
+                				timeMatch.forEach(function(obj, index) {
+	                				var matchObj = new RegExp(obj)
+	                				if(!$(item).html().match(matchObj)) {
+	                					$(item).parent().parent().hide()
+	                				} else {
+	                					$(item).parent().parent().show()
+	                				}
+	                			})
+                			}
+                		})
+                	})
+
                 },
                 error:function(e){
                 	console.log('e', e)

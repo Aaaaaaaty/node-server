@@ -16,9 +16,7 @@ function resolveData(req, res, cb) {
 
 function uploadconfig(res, data) {
     let dataObj = data.fields,
-        configFilePath = './fileDB/apiTestConfig.txt',
-        tp = new Date().getTime(),
-        resultFilePath = `./server_log/apiTestlog_t_${tp}.json`
+        configFilePath = './fileDB/apiTestConfig.txt'
         dataArr = Object.keys(dataObj).map((item, index) => {
             return dataObj[item][0]
         })
@@ -32,25 +30,36 @@ function uploadconfig(res, data) {
             }
             res.writeHead(200, {'Content-type':'application/json'})
             res.end(JSON.stringify(resData))
-            startCasper(dataArr, resultFilePath)
         }
     });
 }
 
-function startCasper(dataArr, resultFilePath) {
-    let casperPath = './child_process/casperMonitor.js'
-    let casperjs = spawn('casperjs', [casperPath, dataArr])
-    let body = ''
-    casperjs.stdout.on('data', (data) => {
-        data = data.toString()
-        body += data
-    }) 
-    casperjs.on('close', () => {
-        fs.writeFile(resultFilePath, body, (err) => {
-            console.log(`日志：${resultFilePath.slice(2)}写入结束`)
+function startCasper() {
+    let tp = new Date().getTime(),
+        configFilePath = './fileDB/apiTestConfig.txt',
+        resultFilePath = `./server_log/apiTestlog_t_${tp}.json`,
+        casperPath = './child_process/casperMonitor.js',
+        readAble = fs.createReadStream(configFilePath),
+        body = ''
+    readAble.on('data', (chunk) => {
+        body += chunk
+    })
+    readAble.on('end', () => {
+        dataArr = JSON.parse(body)
+        let casperjs = spawn('casperjs', [casperPath, dataArr])
+        let casperBody = ''
+        casperjs.stdout.on('data', (data) => {
+            data = data.toString()
+            casperBody += data
+        }) 
+        casperjs.on('close', () => {
+            fs.writeFile(resultFilePath, casperBody, (err) => {
+                console.log(`日志：${resultFilePath.slice(2)}写入结束`)
+            })
         })
     })
 }
+
 function sendData(req, res) {
     let path = './server_log'
     fs.readdir(path, asyncWriteBody)
@@ -91,6 +100,13 @@ function sendData(req, res) {
     }
 }
 
+function sendConfig(res) {
+    let configFilePath = './fileDB/apiTestConfig.txt'
+    let readAble = fs.createReadStream(configFilePath)
+    res.writeHead(200, {'Content-type':'text/plain'})
+    readAble.pipe(res)
+}
+
 
 function api(req, res, path) {
     switch(path)
@@ -102,7 +118,11 @@ function api(req, res, path) {
             sendData(req, res)
             break;
         case 'getConfig':
-            sendConfig()
+            sendConfig(res)
+            break;
+        case 'setTestConfig':
+            startCasper()
+            break;
     }
 }
 

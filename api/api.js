@@ -2,6 +2,9 @@ const fs = require('fs')
 const multiparty = require('multiparty')
 const { spawn } = require('child_process')
 const async = require('async')
+const resemble = require('resemblejs')
+const { host } = require('../host.js')
+let resObj = {}
 function resolveData(req, res, cb) {
     let form = new multiparty.Form()
     form.parse(req, function (err, fields, files) {
@@ -111,6 +114,86 @@ function sendConfig(res) {
     readAble.pipe(res)
 }
 
+function setDiffConfig(req, res) {
+    let ip = req.socket.remoteAddress.slice(7),
+        nowTime = new Date().getTime(),
+        id = ip + nowTime
+    resObj[id] = res
+    resolveDiffData(req, res, id)
+}
+
+function resolveDiffData(req, res, id) {
+    console.log('开始处理数据')
+    console.log(`------------------------------------------`)
+    let form = new multiparty.Form()
+    form.parse(req, function (err, fields, files) {
+        let filename = files['file'][0].originalFilename,
+            targetPath = `${process.cwd()}/assets/images/${filename}`,
+            captureUrl = fields['captureUrl'],
+            selector = fields['selector']
+        if(filename && captureUrl && selector) {
+            let params = {
+                filename: filename,
+                captureUrl: captureUrl,
+                selector:selector,
+                id: id,
+                path: process.cwd()
+            }
+            let casperjs = spawn('casperjs', [`${process.cwd()}/child_process/casper.js`, JSON.stringify(params) ])
+            let body = ''
+            casperjs.stdout.on('data', (data) => {
+                data = data.toString()
+                body += data
+            })
+            casperjs.on('close', () => {
+                console.log('截图结束，数据返回')
+                diffpx(JSON.parse(body), res)
+            })
+        } else {
+            let errData = {
+                status: 400,
+                msg: 'wrong params'
+            }
+            resObj[id].writeHead(400, {'Content-type':'application/json'})
+            resObj[id].end(JSON.stringify(errData))
+        }
+    })
+}
+
+function diffpx(diffObj, res) { //像素对比
+    let {diff, point, id} = diffObj
+    resemble.outputSettings({
+        errorColor: {
+            red: 255,
+            green: 0,
+            blue: 0
+        },
+        errorType: 'movement'
+    })
+    function complete(data) {
+        let imgName = 'diff'+ new Date().getTime() +'.png',
+            imgUrl,
+            analysisTime = data.analysisTime,
+            misMatchPercentage = data.misMatchPercentage,
+            resultUrl = process.cwd()+ '/assets/images/' + imgName
+        console.log('对比结果完成: 像素差：' + misMatchPercentage + '%；耗时：'+ analysisTime +'ms；\n')
+        fs.writeFileSync(resultUrl, data.getBuffer())
+        let diffMatch = diff.slice(1).match(/images/).index
+        imgObj = {
+            status: 200,
+            diffUrl: host + '/images/' + imgName,
+            pointUrl: host + '/' + diff.slice(1).slice(diffMatch),
+            analysisTime: analysisTime,
+            misMatchPercentage: misMatchPercentage
+        }
+        let resEnd = resObj[id]
+        resEnd.writeHead(200, {'Content-type':'application/json'})
+        resEnd.end(JSON.stringify(imgObj))
+    }
+    let result = resemble(diff).compareTo(point).ignoreColors().onComplete(complete)
+}
+
+
 
 function api(req, res, path) {
     switch(path)
@@ -126,6 +209,9 @@ function api(req, res, path) {
             break;
         case 'setTestConfig':
             startCasper(res)
+            break;
+        case 'setDiffConfig':
+            setDiffConfig(req, res)
             break;
     }
 }

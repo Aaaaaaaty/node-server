@@ -4,6 +4,11 @@ const { spawn } = require('child_process')
 const async = require('async')
 const resemble = require('resemblejs')
 const { host } = require('../host.js')
+const zlib = require('zlib')
+const gzip = zlib.createGzip()
+const unzip = require('unzip')
+const FS = require('../utils/fs.js')
+
 let resObj = {}
 function resolveData(req, res, cb) {
     let form = new multiparty.Form()
@@ -25,7 +30,7 @@ function uploadconfig(res, data) {
         })
     fs.writeFile(configFilePath, JSON.stringify(dataArr), (err) => {
         if (err) throw err;
-        console.log('文件：'+ configFilePath.slice(2) +' 已经更新')
+        cons('文件：'+ configFilePath.slice(2) +' 已经更新')
         if(dataArr.length > 0) {
             let resData = {
                 status: 200,
@@ -57,7 +62,7 @@ function startCasper(res) {
         }) 
         casperjs.on('close', () => {
             fs.writeFile(resultFilePath, casperBody, (err) => {
-                console.log(`日志：${resultFilePath.slice(2)}写入结束`)
+                cons(`日志：${resultFilePath.slice(2)}写入结束`)
                 if(res) {
                     res.writeHead(200, 'OK')
                     res.end('success')
@@ -123,8 +128,7 @@ function setDiffConfig(req, res) {
 }
 
 function resolveDiffData(req, res, id) {
-    console.log('开始处理数据')
-    console.log(`------------------------------------------`)
+    cons('开始处理数据')
     let form = new multiparty.Form()
     form.parse(req, function (err, fields, files) {
         let filename = files['file'][0].originalFilename,
@@ -193,7 +197,53 @@ function diffpx(diffObj, res) { //像素对比
     let result = resemble(diff).compareTo(point).ignoreColors().onComplete(complete)
 }
 
+function setFsPath(req, res) {
+    cons('开始处理数据')
+    let ip = req.socket.remoteAddress.slice(7),
+        nowTime = new Date().getTime(),
+        id = `ip_${ip}_t_${nowTime}`,
+        form = new multiparty.Form()
 
+    form.parse(req, function (err, fields, files) {
+        let filename = files['file'][0].originalFilename,
+            targetUrl = fields['targetUrl'],
+            targetPath = process.cwd() + '/assets/fspathfiles/' + id 
+        if (filename) {
+            cons('文件解压缩')
+            fs.mkdirSync(targetPath)
+            let inp = fs.createReadStream(files['file'][0].path)
+            let extract = unzip.Extract({ path: targetPath })
+            inp.pipe(extract)
+            extract.on('error', () => {
+                cons('解压出错:' + err)
+                res.writeHead(500)
+                res.end('error')
+            })
+            extract.on('close', () => {
+                cons('解压完成');
+                FS.fsPathRepeat(targetPath, targetUrl, res, cb)
+                let resultPath
+                function cb(path, res) {
+                    let data = {
+                        status: '200',
+                        path: path
+                    }
+                    res.writeHead(200, {'Content-type':'application/json'})
+                    res.end(JSON.stringify(data))
+                }
+
+            })
+        } else {
+            let errData = {
+                status: 400,
+                msg: 'wrong params'
+            }
+            res.writeHead(400, {'Content-type':'application/json'})
+            res.end(JSON.stringify(errData))
+        }
+          
+    })
+}
 
 function api(req, res, path) {
     switch(path)
@@ -213,7 +263,15 @@ function api(req, res, path) {
         case 'setDiffConfig':
             setDiffConfig(req, res)
             break;
+        case 'setFsPath':
+            setFsPath(req, res)
+            break;
     }
+}
+
+function cons(str) {
+    console.log(str)
+    console.log(`------------------------------------------`)
 }
 
 exports.api = api

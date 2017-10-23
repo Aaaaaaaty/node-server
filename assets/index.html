@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>node服务</title>
+	<link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.css">
+	<style>
+		.wrapper {
+			width: 800px;
+			margin: 0 auto;
+			position: relative;
+		}
+		.progress {
+			display: none;
+			position: fixed;
+			width: 300px;
+			left: 50%;
+			margin-left: -150px;
+			top: 300px;
+			z-index: 100;
+		}
+		.progressBg { 
+			position: fixed;
+			display: none;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.3);
+			z-index: 10;
+			color: white;
+		}
+		.progressBg div{
+			margin: 35% auto;
+		    text-align: center;
+		    font-size: 30px;
+		    margin-top: 350px;
+		}
+		#result {
+			cursor: pointer;
+		}
+		.wechat-icon img{
+			width: 0;
+			height: 0;
+		}
+	</style>
+</head>
+	
+<body>
+	<div class="wrapper">
+		<div class="page-header">
+		    <h2>node-server</h2>
+		</div>
+		<div class="page-header">
+			<h4><a href="/diff.html">像素对比</a></h4> 		
+		</div>
+		<div class="page-header">
+		    <h4><a href="/fspath.html">路径替换</a></h4>
+		</div>
+		<div class="page-header">
+			<h4><a href="/config.html">网站接口检测配置</a></h4>
+			<h4><a href="/log.html">网站接口检测日志</a></h4>
+		</div>
+	</div>
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script>
+		var submitBtn = $('#submitBtn'),
+			file = $('#file'),
+			url = $('#url'),
+			progress = $('.progress'),
+			bg = $('.progressBg'),
+			result = $('#result')
+
+		submitBtn.on('click', ajaxForm)
+		function ajaxForm() {
+			if(url.val() && file.val()) {
+				form = new FormData(document.getElementById("form"))
+				$.ajax({
+	                url:"/api/setFsPath",
+	                type:"post",
+	                port: 3033,
+	                data:form,
+	                processData:false,
+	                contentType:false,
+	                beforeSend:function() {
+	                	progress.show()
+	                	bg.show()
+	                },
+	                success:function(data){
+	                	if(data.status == 200) {
+	                		let path = data.path.match(/\/fspathfiles.*/)[0]
+	                		let resultPaht = window.location.host + path
+	                		result.html(resultPaht).attr('href', path)
+	                	}
+	                },
+	                complete: function() {
+	                	progress.hide()
+	                	bg.hide()
+	                },
+	                error:function(e){
+	                	console.log('e', e)
+	                }
+	            })
+			} else {
+				alert('请填写完整数据')
+			}
+			
+		}
+	</script>
+</body>
+</html>

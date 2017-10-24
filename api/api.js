@@ -174,6 +174,7 @@ function diffpx(diffObj, res) { //像素对比
         },
         errorType: 'movement'
     })
+    console.log('diffpoint',diff, point)
     function complete(data) {
         let imgName = 'diff'+ new Date().getTime() +'.png',
             imgUrl,

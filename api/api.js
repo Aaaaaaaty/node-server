@@ -143,16 +143,21 @@ function resolveDiffData(req, res, id) {
                 id: id,
                 path: process.cwd()
             }
-            let casperjs = spawn('casperjs', [`${process.cwd()}/child_process/casper.js`, JSON.stringify(params) ])
-            let body = ''
-            casperjs.stdout.on('data', (data) => {
-                data = data.toString()
-                body += data
-            })
-            casperjs.on('close', () => {
-                console.log('截图结束，数据返回')
-                diffpx(JSON.parse(body), res)
-            })
+            let readAble = fs.createReadStream(files['file'][0].path)
+            readAble.pipe(fs.createWriteStream(targetPath))
+            readAble.on('end', () => {
+                let path = `${process.cwd()}/child_process/casper.js`
+                let casperjs = spawn('casperjs', [path, JSON.stringify(params) ])
+                let body = ''
+                casperjs.stdout.on('data', (data) => {
+                    data = data.toString()
+                    body += data
+                })
+                casperjs.on('close', () => {
+                    console.log('截图结束，数据返回')
+                    diffpx(JSON.parse(body), res)
+                })
+            });
         } else {
             let errData = {
                 status: 400,
@@ -174,7 +179,6 @@ function diffpx(diffObj, res) { //像素对比
         },
         errorType: 'movement'
     })
-    console.log('diffpoint',diff, point)
     function complete(data) {
         let imgName = 'diff'+ new Date().getTime() +'.png',
             imgUrl,

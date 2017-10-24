@@ -7,16 +7,18 @@ const casper = require('casper').create({
         height: 4080
     }
 })
-var params = JSON.parse(system.args[4])
+// var params = JSON.parse(system.args[4])
+var params = JSON.parse('{"filename":"WechatIMG5.jpeg","captureUrl":["http://www.laohu.com"],"selector":["body"],"id":"10.2.45.1101508813689839","path":"/Users/an/Desktop/workspace/node-server"}')
+
 const fileName = decodeURIComponent(params.filename)
 const url = decodeURIComponent(params.captureUrl)
 const selector = decodeURIComponent(params.selector)
 const id = decodeURIComponent(params.id)
 const path = decodeURIComponent(params.path)
 const time = new Date().getTime()
+
 casper.start(url)
 casper.then(function() {
-
     this.captureSelector( path + '/assets/images/casper'+ id + time +'.png', selector)
 })
 casper.then(function() {
@@ -26,13 +28,6 @@ casper.then(function() {
         'id': id
     }
     this.echo(JSON.stringify(data))
-        // casper.start(host + '/form.html', function() {
-        //  this.fill('form#contact-form', {
-        //      'diff': './images/casper'+ id + time +'.png',
-        //      'point': './images/' + fileName,
-     //            'id': id
-        //  }, true)
-        // })
 })
 casper.run()
 

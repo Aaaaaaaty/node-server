@@ -145,6 +145,7 @@ function resolveDiffData(req, res, id) {
             }
             let readAble = fs.createReadStream(files['file'][0].path)
             readAble.pipe(fs.createWriteStream(targetPath))
+            console.log(targetPath)
             readAble.on('end', () => {
                 let path = `${process.cwd()}/child_process/casper.js`
                 let casperjs = spawn('casperjs', [path, JSON.stringify(params) ])

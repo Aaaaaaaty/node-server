@@ -3,7 +3,6 @@ const multiparty = require('multiparty')
 const { spawn } = require('child_process')
 const async = require('async')
 const resemble = require('resemblejs')
-const { host } = require('../host.js')
 const zlib = require('zlib')
 const gzip = zlib.createGzip()
 const unzip = require('unzip')
@@ -145,7 +144,6 @@ function resolveDiffData(req, res, id) {
             }
             let readAble = fs.createReadStream(files['file'][0].path)
             readAble.pipe(fs.createWriteStream(targetPath))
-            console.log(targetPath)
             readAble.on('end', () => {
                 let path = `${process.cwd()}/child_process/casper.js`
                 let casperjs = spawn('casperjs', [path, JSON.stringify(params) ])
@@ -191,8 +189,8 @@ function diffpx(diffObj, res) { //像素对比
         let diffMatch = diff.slice(1).match(/images/).index
         imgObj = {
             status: 200,
-            diffUrl: host + '/images/' + imgName,
-            pointUrl: host + '/' + diff.slice(1).slice(diffMatch),
+            diffUrl: '/images/' + imgName,
+            pointUrl: '/' + diff.slice(1).slice(diffMatch),
             analysisTime: analysisTime,
             misMatchPercentage: misMatchPercentage
         }

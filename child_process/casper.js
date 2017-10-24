@@ -7,9 +7,7 @@ const casper = require('casper').create({
         height: 4080
     }
 })
-// var params = JSON.parse(system.args[4])
-var params = JSON.parse('{"filename":"WechatIMG5.jpeg","captureUrl":["http://www.laohu.com"],"selector":["body"],"id":"10.2.45.1101508813689839","path":"/Users/an/Desktop/workspace/node-server"}')
-
+var params = JSON.parse(system.args[4])
 const fileName = decodeURIComponent(params.filename)
 const url = decodeURIComponent(params.captureUrl)
 const selector = decodeURIComponent(params.selector)

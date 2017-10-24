@@ -71,6 +71,8 @@ function startCasper(res) {
     })
 }
 
+setInterval(startCasper, 1000 * 60)
+
 function sendData(req, res) {
     let path = './server_log'
     fs.readdir(path, asyncWriteBody)

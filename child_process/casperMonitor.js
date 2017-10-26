@@ -4,7 +4,7 @@ var casper = require("casper").create({
     verbose: false,
     onResourceReceived: function(casper, data) {
         var status = data['status'].toString()
-        if(status.match(/[3|4|5]\d{2}/)) {
+        if(status.match(/[4|5]\d{2}/)) {
             resultObj[data['url']] = {}
             resultObj[data['url']]['status'] = data['status']
             resultObj[data['url']]['from'] = currentUrl

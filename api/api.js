@@ -24,21 +24,22 @@ function resolveData(req, res, cb) {
 function uploadconfig(res, data) {
     let dataObj = data.fields,
         configFilePath = './fileDB/apiTestConfig.txt'
-        dataArr = Object.keys(dataObj).map((item, index) => {
-            return dataObj[item][0]
-        })
+
+    cons(dataObj)
+    dataArr = Object.keys(dataObj).map((item, index) => {
+        return dataObj[item][0]
+    })
     fs.writeFile(configFilePath, JSON.stringify(dataArr), (err) => {
         if (err) throw err;
         cons('文件：'+ configFilePath.slice(2) +' 已经更新')
-        if(dataArr.length > 0) {
             let resData = {
                 status: 200,
                 msg: '已写入配置文件'
             }
             res.writeHead(200, {'Content-type':'application/json'})
             res.end(JSON.stringify(resData))
-        }
     });
+    
 }
 
 function startCasper(res) {

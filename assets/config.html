@@ -106,10 +106,12 @@
 					var configUrl = $('.configUrl')
 					var formData = $('#form')
 					var inputHtml = ''
-					configUrl.each(function(i, obj) {
-						inputHtml += '<input name="'+ obj +'" value="'+ obj +'">'
-					})
-					formData.append(inputHtml)
+					if(configUrl.length) {
+						configUrl.each(function(i, obj) {
+							inputHtml += '<input name="'+ obj +'" value="'+ obj +'">'
+						})
+						formData.append(inputHtml)
+					}
 					form = new FormData(document.getElementById("form"))
 					$.ajax({
 		                url:"/api/uploadConfig",

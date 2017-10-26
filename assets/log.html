@@ -29,8 +29,9 @@
                 		if(item.result) {
 	                		var title = new Date(item.t)
 	                		var logMsgHtml = ''
-	                		Object.keys(item.result).forEach(function(obj) {
-	                			var logItemHtml = '<p><p class="sec-url">地址：<a target="_blank" href="'+ obj +'">'+obj+'</a></p><p class="sec-footer">状态码：'+item.result[obj]+'</p></p>'
+	                		Object.keys(JSON.parse(item.result)).forEach(function(obj) {
+	                			var resultObj = JSON.parse(item.result)
+	                			var logItemHtml = '<p>源地址：<a target="_blank" href="'+ resultObj[obj]['from'] +'">'+ resultObj[obj]['from'] +'</a></p><p class="sec-url">报错链接：<a target="_blank" href="'+ obj +'">'+obj+'</a></p><p class="sec-footer">状态码：'+resultObj[obj]['status']+'</p></p>'
 	                			logMsgHtml += logItemHtml
 	                		})
 	                		var resultHtml = '<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">'+ title.toLocaleString() +'</h3></div><div class="panel-body">'+ logMsgHtml +'</div></div>'

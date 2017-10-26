@@ -72,7 +72,7 @@ function startCasper(res) {
     })
 }
 
-setInterval(startCasper, 1000 * 60 * 60 * 6)
+setInterval(startCasper, 1000 * 60 * 60 * 24)
 
 function sendData(req, res) {
     let path = './server_log'

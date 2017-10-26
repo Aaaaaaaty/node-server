@@ -65,6 +65,7 @@
 					data = data.substring(1, data.length-1)
 					if(data.length) {
 						data.split(',').forEach(function(item) {
+							console.log(item)
 							var index = new Date().getTime()
 							var configItemHtml = '<p><p class="sec-url sec-footer">地址：<a target="_blank" class="configUrl" href="'+ item +'">'+item+'</a><span data-key="'+ index +'" class="right btn btn-danger">删除</span></p></p>'
 		        			configHtml += configItemHtml

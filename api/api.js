@@ -39,7 +39,7 @@ function uploadconfig(res, data) {
             res.writeHead(200, {'Content-type':'application/json'})
             res.end(JSON.stringify(resData))
     });
-    
+
 }
 
 function startCasper(res) {
@@ -59,7 +59,7 @@ function startCasper(res) {
         casperjs.stdout.on('data', (data) => {
             data = data.toString()
             casperBody += data
-        }) 
+        })
         casperjs.on('close', () => {
             fs.writeFile(resultFilePath, casperBody, (err) => {
                 cons(`日志：${resultFilePath.slice(2)}写入结束`)
@@ -83,7 +83,7 @@ function sendData(req, res) {
             let readAble = fs.createReadStream(filePath)
             let dataArr = []
             if(!index) {
-                return function(cb) { 
+                return function(cb) {
                     let data = ''
                     readAble.on('data', (chunk) => {
                         data += chunk
@@ -92,7 +92,7 @@ function sendData(req, res) {
                         dataArr.push(data)
                         cb(null, dataArr)
                     })
-                }  
+                }
             } else {
                 return function(dataArr, cb) {
                     let data = ''
@@ -103,7 +103,7 @@ function sendData(req, res) {
                         dataArr.push(data)
                         cb(null, dataArr)
                     })
-                } 
+                }
             }
         })
         async.waterfall(fnArr, function (err, results) {
@@ -214,7 +214,7 @@ function setFsPath(req, res) {
     form.parse(req, function (err, fields, files) {
         let filename = files['file'][0].originalFilename,
             targetUrl = fields['targetUrl'],
-            targetPath = process.cwd() + '/assets/fspathfiles/' + id 
+            targetPath = process.cwd() + '/assets/fspathfiles/' + id
         if (filename) {
             cons('文件解压缩')
             fs.mkdirSync(targetPath)
@@ -248,7 +248,7 @@ function setFsPath(req, res) {
             res.writeHead(400, {'Content-type':'application/json'})
             res.end(JSON.stringify(errData))
         }
-          
+
     })
 }
 

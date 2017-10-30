@@ -5,7 +5,7 @@ const async = require('async')
 const resemble = require('resemblejs')
 const zlib = require('zlib')
 const gzip = zlib.createGzip()
-const unzip = require('unzip')
+const unzip = require('unzip-stream')
 const FS = require('../utils/fs.js')
 
 let resObj = {}
@@ -24,7 +24,6 @@ function resolveData(req, res, cb) {
 function uploadconfig(res, data) {
     let dataObj = data.fields,
         configFilePath = './fileDB/apiTestConfig.txt'
-
     cons(dataObj)
     dataArr = Object.keys(dataObj).map((item, index) => {
         return dataObj[item][0]
@@ -221,14 +220,21 @@ function setFsPath(req, res) {
             let inp = fs.createReadStream(files['file'][0].path)
             let extract = unzip.Extract({ path: targetPath })
             inp.pipe(extract)
-            extract.on('error', () => {
+            extract.on('error', (err) => {
                 cons('解压出错:' + err)
                 res.writeHead(500)
                 res.end('error')
             })
             extract.on('close', () => {
                 cons('解压完成');
-                FS.fsPathRepeat(targetPath, targetUrl, res, cb)
+                let data = {
+                    targetPath: targetPath,
+                    targetUrl: targetUrl,
+                    ugjs: fields['ugjs'],
+                    ugcss: fields['ugcss']
+                }
+                // setTimeout(() => {FS.fsPathRepeat(data, res, cb)}, 100)
+               FS.fsPathRepeat(data, res, cb)
                 let resultPath
                 function cb(path, res) {
                     let data = {

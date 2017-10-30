@@ -1,26 +1,30 @@
 const fs = require('fs')
-const { execSync } = require('child_process')
-function fsPathRepeat(path, targetUrl, res, cb) {
-	let originPath = path
-	let dataKey = ['.js', '.css', '.html']
-	let data = [
-		{	
-			'type': 'script',
-			'point': targetUrl
-		},
-		{	
-			'type': 'link',
-			'point': targetUrl
-		},
-		{	
-			'type': 'img',
-			'point': targetUrl
-		},
-		{	
-			'type': 'background',
-			'point': targetUrl
-		}
-	]
+const { exec, execSync } = require('child_process')
+function fsPathRepeat(dataObj, res, cb) {
+    let path = dataObj.targetPath,
+        targetUrl = dataObj.targetUrl,
+        ugjs = dataObj.ugjs,
+        ugcss = dataObj.ugcss,
+	    originPath = path,
+	    dataKey = ['.js', '.css', '.html'],
+	    data = [
+            {	
+            	'type': 'script',
+            	'point': targetUrl
+            },
+            {	
+            	'type': 'link',
+            	'point': targetUrl
+            },
+            {
+            	'type': 'img',
+            	'point': targetUrl
+            },
+            {	
+            	'type': 'background',
+            	'point': targetUrl
+            }
+        ]
 	function fsPathSys(path, dataKey) { //遍历路径
 		let stat = fs.statSync(path)
 		if(stat.isDirectory()) {
@@ -50,8 +54,7 @@ function fsPathRepeat(path, targetUrl, res, cb) {
 					})
 				}
 			}
-		}
-		else {
+		}	else {
 			dataKey.forEach((obj, index) => {
 				replaceAddress(path)
 			})
@@ -71,60 +74,79 @@ function fsPathRepeat(path, targetUrl, res, cb) {
 	function matchData(path, data, body) {
 		let replaceBody = {}
 		data.forEach((obj, i) => {
-			if(obj.type === 'script' || obj.type === 'link' || obj.type === 'img') {
-				let bodyMatch = body.match(new RegExp(`<${obj.type}.*?>`, 'g'))
-				if(bodyMatch) {
-					bodyMatch.forEach((item, index) => {
-						let itemMatch = item.match(/(src|href)\s*=\s*["|'].*?["|']/g)
-						if(itemMatch) {
-							itemMatch.forEach((data, i) => {
-								if(data.match(/(["|']).*\//g)) {
-									let matchItem = data.match(/(["|']).*\//g)[0].replace(/\s/g, '').slice(1)
-									if(!replaceBody[matchItem]) {
-										replaceBody[matchItem] = obj.point
+			if(!!obj.point[0]) {
+				if (obj.type === 'script' || obj.type === 'link' || obj.type === 'img') {
+					let bodyMatch = body.match(new RegExp(`<${obj.type}.*?>`, 'g'))
+					if (bodyMatch) {
+						bodyMatch.forEach((item, index) => {
+							let itemMatch = item.match(/(src|href)\s*=\s*["|'].*?["|']/g)
+							if (itemMatch) {
+								itemMatch.forEach((data, i) => {
+									if (data.match(/(["|']).*\//g)) {
+										let matchItem = data.match(/(["|']).*\//g)[0].replace(/\s/g, '').slice(1)
+										if (!replaceBody[matchItem]) {
+											replaceBody[matchItem] = obj.point
+										}
 									}
-								}
-							})
-						}
-					})
-				}
-			} else if(obj.type === 'background') {
-				let bodyMatch = body.match(/url\(.*?\)/g)
-				if(bodyMatch) {
-					bodyMatch.forEach((item, index) => {
-						if(item.match(/\(.*\//g)) {
-							let itemMatch = item.match(/\(.*\//g)[0].replace(/\s/g, '').slice(1)
-							if(!replaceBody[itemMatch]) {
-								replaceBody[itemMatch] = obj.point
+								})
 							}
-						}
-					})
+						})
+					}
+				} else if (obj.type === 'background') {
+					let bodyMatch = body.match(/url\(.*?\)/g)
+					if (bodyMatch) {
+						bodyMatch.forEach((item, index) => {
+							if (item.match(/\(.*\//g)) {
+								let itemMatch = item.match(/\(.*\//g)[0].replace(/\s/g, '').slice(1)
+								if (!replaceBody[itemMatch]) {
+									replaceBody[itemMatch] = obj.point
+								}
+							}
+						})
+					}
 				}
-
 			}
 		})
 		replaceSepical(path, body, replaceBody)	
 	}
 
 	function replaceSepical(path, body, replaceBody) {
-		Object.keys(replaceBody).sort((a,b) => b.length - a.length).forEach((item, index) => {
-			let i = item,
-				itemReplace
-			if(item.match(/\.\//g)) {
-				item = item.replace(/\./g, '\\\.')
-			} 
-			itemReplace = new RegExp(item, 'g')	
-			body = body.replace(itemReplace, replaceBody[i])
-		})
+		if(Object.keys(replaceBody).length) {
+			Object.keys(replaceBody).sort((a, b) => b.length - a.length).forEach((item, index) => {
+				let i = item,
+					itemReplace
+				if (item.match(/\.\//g)) {
+					item = item.replace(/\./g, '\\\.')
+				}
+				itemReplace = new RegExp(item, 'g')
+				body = body.replace(itemReplace, replaceBody[i])
+			})
+		}
 		writeFs(path, body)
 	}
 	function writeFs(path, body) {
 		fs.writeFile(path, body, (err) => {
-		  	if (err) throw err;
-		  	if(cb) {
-		  		cb(originPath, res)
-		  		cb = null
-		  	}
+			if (err) throw err;
+            if(ugjs && path.match(/.js/)) {
+				execSync(`uglifyjs ${path} -c -m -o ${path}`)
+				console.log(error)
+				console.log(1233131321)
+				res.writeHead(500)
+				let data = {
+					status: '500',
+					msg: 'js压缩出错'
+				}
+				res.end(JSON.stringify(data))
+				return false
+			}
+			if (ugcss && path.match(/.css/)) {
+				execSync(`cleancss -o ${path} ${path}`)
+			}
+			if (cb) {
+				console.log(123)
+				cb(originPath, res)
+				cb = null
+			}
 		})
 	}
 	fsPathSys(path, dataKey)

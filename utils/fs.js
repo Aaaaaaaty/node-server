@@ -127,26 +127,42 @@ function fsPathRepeat(dataObj, res, cb) {
 	function writeFs(path, body) {
 		fs.writeFile(path, body, (err) => {
 			if (err) throw err;
+			console.log('执行路径', path)
             if(ugjs && path.match(/.js/)) {
-				execSync(`uglifyjs ${path} -c -m -o ${path}`)
-				console.log(error)
-				console.log(1233131321)
-				res.writeHead(500)
-				let data = {
-					status: '500',
-					msg: 'js压缩出错'
-				}
-				res.end(JSON.stringify(data))
-				return false
+				exec(`uglifyjs ${path} -c -m -o ${path}`, (error, stdout, stderr) => {
+					if(error) {
+						res.writeHead(500)
+						let data = {
+							status: '500',
+							msg: 'uglify err'
+						}
+						res.end(JSON.stringify(data))
+						return false
+					}
+					if (cb) {
+						cb(originPath, res)
+						cb = null
+					}	
+				})			
 			}
-			if (ugcss && path.match(/.css/)) {
-				execSync(`cleancss -o ${path} ${path}`)
+			else if (ugcss && path.match(/.css/)) {
+				exec(`cleancss ${path} -o ${path}`, (error, stdout, stderr) => {
+					if(error) {
+						res.writeHead(500)
+						let data = {
+							status: '500',
+							msg: 'cleancss err'
+						}
+						res.end(JSON.stringify(data))
+						return false
+					}
+					if (cb) {
+						cb(originPath, res)
+						cb = null
+					}	
+				})			
 			}
-			if (cb) {
-				console.log(123)
-				cb(originPath, res)
-				cb = null
-			}
+			
 		})
 	}
 	fsPathSys(path, dataKey)

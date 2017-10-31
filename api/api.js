@@ -233,8 +233,8 @@ function setFsPath(req, res) {
                     ugjs: fields['ugjs'],
                     ugcss: fields['ugcss']
                 }
-                // setTimeout(() => {FS.fsPathRepeat(data, res, cb)}, 100)
-               FS.fsPathRepeat(data, res, cb)
+                // setTimeout(function() {console.log(456);FS.fsPathRepeat(data, res, cb)}, 200)
+                FS.fsPathRepeat(data, res, cb)
                 let resultPath
                 function cb(path, res) {
                     let data = {
@@ -251,6 +251,7 @@ function setFsPath(req, res) {
                 status: 400,
                 msg: 'wrong params'
             }
+            console.log('???S237G')
             res.writeHead(400, {'Content-type':'application/json'})
             res.end(JSON.stringify(errData))
         }
